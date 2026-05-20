@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/api/auth/(.*)", "destination": "/api/auth.js" },
+    { "source": "/api/payment/(.*)", "destination": "/api/payment.js" },
+    { "source": "/api/admin/(.*)", "destination": "/api/admin.js" }
   ],
   "headers": [
     {
