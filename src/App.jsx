@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Payment from './pages/Payment';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -56,6 +57,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout theme={theme} toggleTheme={toggleTheme}><Dashboard /></AppLayout></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><AppLayout theme={theme} toggleTheme={toggleTheme}><Tasks /></AppLayout></ProtectedRoute>} />

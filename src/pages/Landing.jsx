@@ -18,8 +18,8 @@ export default function Landing() {
             <span className="font-semibold text-text-primary">DataSaaS</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/login" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Login</Link>
-            <Link to="/payment" className="btn btn-primary btn-sm">Subscribe</Link>
+            <Link to="/login" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Sign In</Link>
+            <Link to="/signup" className="btn btn-primary btn-sm">Sign Up Free</Link>
           </div>
         </div>
       </nav>
@@ -30,7 +30,7 @@ export default function Landing() {
           <h1 className="text-5xl md:text-6xl font-bold text-text-primary mb-6 leading-tight">Manage tasks with <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">precision</span></h1>
           <p className="text-lg text-text-secondary mb-8 max-w-xl mx-auto">A powerful project management tool with filtering, analytics, and collaboration. Start your free 3-day trial today.</p>
           <div className="flex items-center justify-center gap-4">
-            <Link to="/login" className="btn btn-primary px-8 py-3 text-base">Get Started Free <ArrowRight size={18} /></Link>
+            <Link to="/signup" className="btn btn-primary px-8 py-3 text-base">Sign Up Free <ArrowRight size={18} /></Link>
             <Link to="/payment" className="btn btn-secondary px-8 py-3 text-base">View Pricing</Link>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function Landing() {
               <li className="flex items-center gap-2"><Check size={14} className="text-success" />2 projects</li>
               <li className="flex items-center gap-2"><Check size={14} className="text-success" />Basic filters</li>
             </ul>
-            <Link to="/login" className="btn btn-secondary w-full">Start Trial</Link>
+            <Link to="/signup" className="btn btn-secondary w-full">Sign Up Free</Link>
           </div>
           <div className="card text-center border-primary relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary text-white text-xs font-medium rounded-full">Popular</div>
