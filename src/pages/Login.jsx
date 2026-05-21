@@ -15,10 +15,25 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      if (isRegister) await register(email, password);
-      else await login(email, password);
-      navigate('/dashboard');
-    } catch (err) { setError(err.message); }
+      if (isRegister) {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/auth/register`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        navigate(`/verify-email?email=${encodeURIComponent(email)}&token=${data.verificationToken}`);
+      } else {
+        await login(email, password);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      if (err.message.includes('verify your email')) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+      } else {
+        setError(err.message);
+      }
+    }
   };
 
   return (

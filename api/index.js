@@ -98,10 +98,11 @@ module.exports = async (req, res) => {
         const trialStart = new Date().toISOString();
         const trialEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
         const id = getNextId('users');
-        db.users.push({ id, email, password: hashedPassword, role: 'customer', plan: 'trial', trial_start: trialStart, trial_end: trialEnd, created_at: new Date().toISOString() });
+        const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
+        const verificationToken = jwt.sign({ id, email, code: verificationCode }, JWT_SECRET, { expiresIn: '24h' });
+        db.users.push({ id, email, password: hashedPassword, role: 'customer', plan: 'trial', trial_start: trialStart, trial_end: trialEnd, email_verified: false, verification_code: verificationCode, created_at: new Date().toISOString() });
         writeDB(db);
-        const token = jwt.sign({ id, email, role: 'customer', plan: 'trial' }, JWT_SECRET, { expiresIn: '7d' });
-        return jsonResponse(res, 201, { message: 'Registration successful. 3-day free trial started.', token, user: { id, email, role: 'customer', plan: 'trial', trialEnd } });
+        return jsonResponse(res, 201, { message: 'Registration successful. Please verify your email.', verificationToken, email });
       }
       if (action === 'login' && req.method === 'POST') {
         const { email, password } = body;
@@ -109,6 +110,7 @@ module.exports = async (req, res) => {
         const user = db.users.find(u => u.email === email);
         if (!user) return jsonResponse(res, 401, { error: 'Invalid credentials.' });
         if (!bcrypt.compareSync(password, user.password)) return jsonResponse(res, 401, { error: 'Invalid credentials.' });
+        if (!user.email_verified) return jsonResponse(res, 403, { error: 'Please verify your email before logging in.', unverified: true });
         const now = new Date();
         let plan = user.plan;
         if (plan === 'trial' && user.trial_end && new Date(user.trial_end) < now) plan = 'expired';
@@ -123,6 +125,45 @@ module.exports = async (req, res) => {
         if (!user) return jsonResponse(res, 404, { error: 'User not found.' });
         const { password, ...safe } = user;
         return jsonResponse(res, 200, { user: safe });
+      }
+      if (action === 'verify' && req.method === 'POST') {
+        const { email, code, token } = body;
+        let userId, verificationCode;
+        if (token) {
+          try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            userId = decoded.id;
+            verificationCode = decoded.code;
+          } catch (err) {
+            return jsonResponse(res, 400, { error: 'Invalid or expired verification link.' });
+          }
+        } else if (email && code) {
+          const user = db.users.find(u => u.email === email);
+          if (!user) return jsonResponse(res, 404, { error: 'User not found.' });
+          if (user.email_verified) return jsonResponse(res, 400, { error: 'Email already verified.' });
+          if (user.verification_code !== code) return jsonResponse(res, 400, { error: 'Invalid verification code.' });
+          userId = user.id;
+          verificationCode = user.verification_code;
+        } else {
+          return jsonResponse(res, 400, { error: 'Email and code or token required.' });
+        }
+        const userIdx = db.users.findIndex(u => u.id === userId);
+        if (userIdx === -1) return jsonResponse(res, 404, { error: 'User not found.' });
+        db.users[userIdx] = { ...db.users[userIdx], email_verified: true, verification_code: undefined };
+        writeDB(db);
+        return jsonResponse(res, 200, { message: 'Email verified successfully. You can now log in.' });
+      }
+      if (action === 'resend-verification' && req.method === 'POST') {
+        const { email } = body;
+        if (!email) return jsonResponse(res, 400, { error: 'Email required.' });
+        const userIdx = db.users.findIndex(u => u.email === email);
+        if (userIdx === -1) return jsonResponse(res, 404, { error: 'User not found.' });
+        if (db.users[userIdx].email_verified) return jsonResponse(res, 400, { error: 'Email already verified.' });
+        const newCode = String(Math.floor(100000 + Math.random() * 900000));
+        const newToken = jwt.sign({ id: db.users[userIdx].id, email, code: newCode }, JWT_SECRET, { expiresIn: '24h' });
+        db.users[userIdx] = { ...db.users[userIdx], verification_code: newCode };
+        writeDB(db);
+        return jsonResponse(res, 200, { message: 'Verification code sent.', verificationToken: newToken });
       }
     }
 
